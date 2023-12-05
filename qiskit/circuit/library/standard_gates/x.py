@@ -214,6 +214,28 @@ class CXGate(SingletonControlledGate):
 
     _singleton_lookup_key = stdlib_singleton_key(num_ctrl_qubits=1)
 
+    def _define(self):
+        """
+        gate cx a,b { h b; cz a,b; h b; }
+        """
+        # pylint: disable=cyclic-import
+        from qiskit.circuit.quantumcircuit import QuantumCircuit
+
+        from .h import HGate
+        from .z import CZGate
+
+        q = QuantumRegister(2, "q")
+        qc = QuantumCircuit(q, name=self.name)
+        rules = [
+            (HGate(), [q[1]], []),
+            (CZGate(), [q[0], q[1]], []),
+            (HGate(), [q[1]], []),
+        ]
+        for instr, qargs, cargs in rules:
+            qc._append(instr, qargs, cargs)
+
+        self.definition = qc
+
     def control(
         self,
         num_ctrl_qubits: int = 1,
